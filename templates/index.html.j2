@@ -1,0 +1,178 @@
+{% extends "base.html.j2" %}
+{% block title %}DF Solver{% endblock %}
+{% block header %}<h2>DominoFit Solver</h2>{% endblock %}
+{% block css %}{{ css }}{% endblock %}
+{% block content %}
+  <div style='padding-left: 30px;'>
+    Rows: <input type="text" placeholder="" onchange="rebuildGrid('rows', this.value)" style='margin-left: 10px; margin-right: 30px;'>
+    Columns: <input type="text" placeholder="" onchange="rebuildGrid('cols', this.value)" style='margin-left: 10px;'>
+  </div>
+
+  <table>
+    <tr><td>
+    <div class="grid-wrapper" id="grid">
+      <!-- Top-left empty cell -->
+      <div class="label">
+        <button onclick="reset()">X</button>
+      </div>
+
+      <!-- Column headers -->
+      {% for j in range(board.cols) %}
+        <div class="label">
+          <input type="text" placeholder="" onchange="updateLabel('col', {{ j }}, this.value)">
+        </div>
+      {% endfor %}
+
+      <!-- Rows with row labels and cells -->
+      {% for i in range(board.rows) %}
+        <!-- Row label -->
+        <div class="label">
+          <input type="text" placeholder="" onchange="updateLabel('row', {{ i }}, this.value)">
+        </div>
+
+        {% for j in range(board.cols) %}
+          <div class="cell" id="cell-{{i}}-{{j}}" onclick="cellClick({{i}}, {{j}})">
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+    </td><td>
+    <!-- SVG Panel -->
+    <div id="svg-panel">
+      <h3>Solution</h3>
+        <object id="image_svg" type="image/svg+xml" data="{{url_for(board.filepath, filename=board.filename)}}" width="100%" height="auto">
+          No solution found (or your browser does not support SVG)
+        </object>
+    </div>
+    </td></tr>
+    <tr><td style='text-align: right;'>
+      <div style='margin-top: 20px;'><button onclick="generateSvg()">Solve</button></div>
+    </td></tr>
+    <tr><td colspan='2'>
+    <div>
+      <table>
+        <tr><th>Blocked</th><td><i id="blk_infos"></i></td></tr>
+        <tr><th>Col sums</th><td><i id="col_infos"></i></td></tr>
+        <tr><th>Row sums</th><td><i id="row_infos"></i></td></tr>
+      </table>
+    </div>
+    </td></tr>
+  </table>
+
+  <script>
+    function rebuildGrid(type, newValue) {
+      fetch('/grid-data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: type, value: newValue })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = ''; // Clear existing grid
+
+        const newRows = data.board.rows;
+        const newCols = data.board.cols;
+        
+        // Top-left reset button cell
+        const resetDiv = document.createElement('div');
+        resetDiv.className = 'label';
+        resetDiv.innerHTML = `<button onclick="reset()">X</button>`;
+        grid.appendChild(resetDiv);
+
+        // Column headers
+        for (let j = 0; j < newCols; j++) {
+          const label = document.createElement('div');
+          label.className = 'label';
+          label.innerHTML = `<input type="text" placeholder="" value="${data.board.col_targets[j] || ''}" onchange="updateLabel('col', ${j}, this.value)">`;
+          grid.appendChild(label);
+        }
+
+        // Rows
+        for (let i = 0; i < newRows; i++) {
+          // Row label
+          const label = document.createElement('div');
+          label.className = 'label';
+          label.onchange = () => updateLabel('row', i, label.value);
+          label.innerHTML = `<input type="text" placeholder="" value="${data.board.row_targets[i] || ''}" onchange="updateLabel('row', ${i}, this.value)">`;
+          grid.appendChild(label);
+
+          // Cells
+          for (let j = 0; j < newCols; j++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.id = `cell-${i}-${j}`;
+            cell.onclick = () => cellClick(i, j);
+
+            // Highlight blocked cells
+            if (data.board.blocked.some(([r, c]) => r === i && c === j)) {
+              cell.style.backgroundColor = '#DDDDDD';
+            }
+
+            grid.appendChild(cell);
+          }
+        }
+
+        grid.style.gridTemplateColumns = `70px repeat(${newCols}, ${350/newCols}px)`;
+        grid.style.gridTemplateRows = `70px repeat(${newRows}, ${350/newCols}px)`;
+      });
+    }
+
+    function reset() {
+      fetch('/reset', {
+        method: 'GET',
+        headers: { }
+      })
+    }
+
+    function cellClick(row, col) {
+      fetch('/cell-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ row: row, col: col })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const blk = document.getElementById('blk_infos');
+        const formatted = `{ ${data.board.blocked.map(pair => `(${pair[0]}, ${pair[1]})`).join(', ')} }`;
+        blk.textContent = formatted;
+
+        const cell = document.getElementById(`cell-${row}-${col}`);
+        if (data.color) {
+          cell.style.backgroundColor = data.color;
+        }
+      });
+    }
+
+    function updateLabel(type, index, value) {
+      fetch('/label-update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: type, index: index, value: value })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const col = document.getElementById('col_infos');
+        col.textContent = data.board.col_targets;
+
+        const row = document.getElementById('row_infos');
+        row.textContent = data.board.row_targets;
+      });
+    }
+
+    function generateSvg() {
+      fetch('/generate-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      })
+      .then(response => response.json())
+      .then(data => {
+        const img = document.getElementById('image_svg');
+        img.data = `${data.board.filepath}/${data.board.filename}`;
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', rebuildGrid);
+  </script>
+{% endblock %}
