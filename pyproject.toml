@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "df-solver"
+version = "0.1.0"
+description = "Domino Fit Solver web app"
+authors = [
+    { name = "Nicolas Christie", email = "nicolas.christie@gmail.com" }
+]
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "flask", "ortools", "svgwrite"
+]
+
+[tool.setuptools]
+packages = ["models", "utils"]
+include-package-data = true
