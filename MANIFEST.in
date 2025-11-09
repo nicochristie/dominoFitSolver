@@ -1,2 +1,22 @@
+# Include static files for web interface
 recursive-include static *
+
+# Include HTML templates
 recursive-include templates *
+
+# Include documentation
+include README.md
+include CLAUDE.md
+include LICENSE
+recursive-include docs *
+
+# Include configuration examples
+include .gitignore
+graft .vscode
+
+# Exclude unnecessary files
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .DS_Store
+global-exclude *.swp
+global-exclude *~
