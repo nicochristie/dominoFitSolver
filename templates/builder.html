@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DominoFit Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #4a5568;
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group label {
+            font-weight: bold;
+            color: #4a5568;
+        }
+
+        input[type="number"], input[type="text"] {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 60px;
+            text-align: center;
+        }
+
+        input[type="number"]:focus, input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .game-area {
+            display: flex;
+            gap: 30px;
+            align-items: flex-start;
+        }
+
+        .grid-container {
+            flex: 1;
+        }
+
+        .grid-wrapper {
+            display: inline-block;
+            border: 3px solid #4a5568;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #f7fafc;
+        }
+
+        .grid {
+            display: grid;
+            gap: 2px;
+            background: #4a5568;
+            padding: 2px;
+        }
+
+        .cell {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border: 1px solid #cbd5e0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 24px;
+            transition: all 0.1s;
+            position: relative;
+        }
+
+        .cell:hover {
+            background: #edf2f7;
+        }
+
+        .cell.blocked {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .cell.domino-h-left {
+            background: white;
+            border-right: 3px solid #333;
+        }
+
+        .cell.domino-h-right {
+            background: white;
+            border-left: 3px solid #333;
+        }
+
+        .cell.domino-v-top {
+            background: white;
+            border-bottom: 3px solid #333;
+        }
+
+        .cell.domino-v-bottom {
+            background: white;
+            border-top: 3px solid #333;
+        }
+
+        .cell.invalid {
+            background: #feb2b2 !important;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            75% { transform: translateX(2px); }
+        }
+
+        .label-cell {
+            width: 60px;
+            height: 60px;
+            background: #4a5568;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .label-input {
+            width: 45px;
+            height: 45px;
+            border: none;
+            background: transparent;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .label-input::placeholder {
+            color: #a0aec0;
+        }
+
+        .info-panel {
+            width: 300px;
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+        }
+
+        .info-section h3 {
+            margin: 0 0 10px 0;
+            color: #4a5568;
+            font-size: 16px;
+        }
+
+        .domino-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .domino-preview {
+            flex: 1;
+            padding: 15px;
+            border: 3px solid #e2e8f0;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .domino-preview.active {
+            border-color: #667eea;
+            background: #edf2f7;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        .domino-preview:hover:not(.active) {
+            border-color: #cbd5e0;
+            background: #f7fafc;
+        }
+
+        .domino-horizontal {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .domino-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .domino-half {
+            width: 25px;
+            height: 25px;
+            border: 2px solid #333;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background: #333;
+            border-radius: 50%;
+            margin: 1px;
+        }
+
+        .dots-0 {
+            justify-content: center;
+        }
+
+        .dots-1 {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dots-2 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-direction: column;
+            padding: 2px 0;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 6px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .stat-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #feb2b2;
+        }
+
+        .status-info {
+            background: #bee3f8;
+            color: #2a4365;
+            border: 1px solid #90cdf4;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #718096;
+            font-size: 14px;
+        }
+
+        .instructions {
+            font-size: 12px;
+            line-height: 1.4;
+            color: #718096;
+        }
+
+        .domino-type-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="domino-type-indicator" id="domino-indicator">
+        Horizontal (0-2)
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>🎲 DominoFit Game</h1>
+        </header>
+
+        <div class="game-controls">
+            <div class="control-group">
+                <label>Rows:</label>
+                <input type="number" id="rows" value="8" min="2" max="10" onchange="updateGrid()" title="Number of rows" placeholder="Rows">
+            </div>
+            <div class="control-group">
+                <label>Cols:</label>
+                <input type="number" id="cols" value="8" min="2" max="10" onchange="updateGrid()" title="Number of columns" placeholder="Cols">
+            </div>
+            <div class="control-group">
+                <button class="btn btn-secondary" onclick="generatePuzzle()">Generate Puzzle</button>
+                <button class="btn btn-secondary" onclick="clearGrid()">Clear</button>
+                <button class="btn btn-success" onclick="checkSolution()">Check Solution</button>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="grid-container">
+                <div class="grid-wrapper">
+                    <div id="game-grid" class="grid"></div>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <div class="info-section">
+                    <h3>Domino Type (Right-click to toggle)</h3>
+                    <div class="domino-selector">
+                        <div class="domino-preview active" onclick="setDominoType('horizontal')" id="preview-h">
+                            <div class="domino-horizontal">
+                                <div class="domino-half dots-0"></div>
+                                <div class="domino-half dots-2">
+                                    <div class="dot"></div>
+                                    <div class="dot"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="domino-preview" onclick="setDominoType('vertical')" id="preview-v">
+                            <div class="domino-vertical">
+                                <div class="domino-half dots-1">
+                                    <div class="dot"></div>
+                                </div>
+                                <div class="domino-half dots-0"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="status-message"></div>
+
+                <div class="info-section">
+                    <h3>Game Stats</h3>
+                    <div class="stats">
+                        <div class="stat-row">
+                            <span>Dominoes Placed:</span>
+                            <span id="dominoes-count">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Blocked Cells:</span>
+                            <span id="blocked-count">0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Valid Rows:</span>
+                            <span id="valid-rows">0/0</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Valid Cols:</span>
+                            <span id="valid-cols">0/0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <h3>Instructions</h3>
+                    <div class="instructions">
+                        • Set target sums in row/column labels<br>
+                        • Left-click to place selected domino type<br>
+                        • Right-click anywhere to toggle domino type<br>
+                        • Horizontal dominoes (0-2) = 2 points total<br>
+                        • Vertical dominoes (1-0) = 1 point total<br>
+                        • Blocked cells (gray) = 0 points<br>
+                        • Generate puzzle creates blocked cells automatically
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 DominoFit Game</p>
+    </footer>
+
+    <script>
+        let gameState = {
+            rows: 8,
+            cols: 8,
+            grid: [],
+            rowTargets: [],
+            colTargets: [],
+            blocked: new Set(),
+            dominoes: new Set(),
+            dominoType: 'horizontal' // 'horizontal' for 0-2, 'vertical' for 1-0
+        };
+
+        function initializeGame() {
+            gameState.rows = parseInt(document.getElementById('rows').value);
+            gameState.cols = parseInt(document.getElementById('cols').value);
+            gameState.grid = Array(gameState.rows).fill().map(() => Array(gameState.cols).fill(0));
+            gameState.rowTargets = Array(gameState.rows).fill('');
+            gameState.colTargets = Array(gameState.cols).fill('');
+            gameState.blocked = new Set();
+            gameState.dominoes = new Set();
+            updateGrid();
+            updateStats();
+            updateDominoIndicator();
+        }
+
+        function updateGrid() {
+            gameState.rows = parseInt(document.getElementById('rows').value);
+            gameState.cols = parseInt(document.getElementById('cols').value);
+            
+            // Resize arrays if needed
+            if (gameState.rowTargets.length !== gameState.rows) {
+                gameState.rowTargets = Array(gameState.rows).fill('');
+            }
+            if (gameState.colTargets.length !== gameState.cols) {
+                gameState.colTargets = Array(gameState.cols).fill('');
+            }
+            
+            gameState.grid = Array(gameState.rows).fill().map(() => Array(gameState.cols).fill(0));
+            gameState.blocked = new Set();
+            gameState.dominoes = new Set();
+            
+            renderGrid();
+            updateStats();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('game-grid');
+            grid.innerHTML = '';
+            
+            const totalCols = gameState.cols + 1;
+            const totalRows = gameState.rows + 1;
+            
+            grid.style.gridTemplateColumns = `65px repeat(${gameState.cols}, 60px)`;
+            grid.style.gridTemplateRows = `65px repeat(${gameState.rows}, 60px)`;
+            
+            // Top-left corner
+            const corner = document.createElement('div');
+            corner.className = 'label-cell';
+            corner.textContent = '🎲';
+            grid.appendChild(corner);
+            
+            // Column headers
+            for (let c = 0; c < gameState.cols; c++) {
+                const header = document.createElement('div');
+                header.className = 'label-cell';
+                const input = document.createElement('input');
+                input.className = 'label-input';
+                input.type = 'text';
+                input.value = gameState.colTargets[c];
+                input.placeholder = '?';
+                input.onchange = (e) => {
+                    gameState.colTargets[c] = e.target.value;
+                    updateStats();
+                };
+                header.appendChild(input);
+                grid.appendChild(header);
+            }
+            
+            // Rows
+            for (let r = 0; r < gameState.rows; r++) {
+                // Row header
+                const header = document.createElement('div');
+                header.className = 'label-cell';
+                const input = document.createElement('input');
+                input.className = 'label-input';
+                input.type = 'text';
+                input.value = gameState.rowTargets[r];
+                input.placeholder = '?';
+                input.onchange = (e) => {
+                    gameState.rowTargets[r] = e.target.value;
+                    updateStats();
+                };
+                header.appendChild(input);
+                grid.appendChild(header);
+                
+                // Row cells
+                for (let c = 0; c < gameState.cols; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${r}-${c}`;
+                    cell.onclick = () => handleCellClick(r, c);
+                    
+                    const cellKey = `${r},${c}`;
+                    if (gameState.blocked.has(cellKey)) {
+                        cell.classList.add('blocked');
+                    } else if (gameState.dominoes.has(`h-${r}-${c}`)) {
+                        cell.classList.add('domino-h-left');
+                        cell.innerHTML = '<div class="dots-0"></div>';
+                    } else if (gameState.dominoes.has(`h-${r}-${c-1}`)) {
+                        cell.classList.add('domino-h-right');
+                        cell.innerHTML = '<div class="dots-2"><div class="dot"></div><div class="dot"></div></div>';
+                    } else if (gameState.dominoes.has(`v-${r}-${c}`)) {
+                        cell.classList.add('domino-v-top');
+                        cell.innerHTML = '<div class="dots-1"><div class="dot"></div></div>';
+                    } else if (gameState.dominoes.has(`v-${r-1}-${c}`)) {
+                        cell.classList.add('domino-v-bottom');
+                        cell.innerHTML = '<div class="dots-0"></div>';
+                    }
+                    
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function handleCellClick(row, col) {
+            const cellKey = `${row},${col}`;
+            
+            if (gameState.dominoType === 'horizontal') {
+                if (col < gameState.cols - 1) {
+                    const dominoKey = `h-${row}-${col}`;
+                    const cellKey2 = `${row},${col+1}`;
+                    
+                    if (gameState.dominoes.has(dominoKey)) {
+                        gameState.dominoes.delete(dominoKey);
+                    } else if (!gameState.blocked.has(cellKey) && !gameState.blocked.has(cellKey2)) {
+                        // Remove any existing dominoes at these positions
+                        removeDominoesAt(row, col);
+                        removeDominoesAt(row, col + 1);
+                        gameState.dominoes.add(dominoKey);
+                    }
+                }
+            } else if (gameState.dominoType === 'vertical') {
+                if (row < gameState.rows - 1) {
+                    const dominoKey = `v-${row}-${col}`;
+                    const cellKey2 = `${row+1},${col}`;
+                    
+                    if (gameState.dominoes.has(dominoKey)) {
+                        gameState.dominoes.delete(dominoKey);
+                    } else if (!gameState.blocked.has(cellKey) && !gameState.blocked.has(cellKey2)) {
+                        // Remove any existing dominoes at these positions
+                        removeDominoesAt(row, col);
+                        removeDominoesAt(row + 1, col);
+                        gameState.dominoes.add(dominoKey);
+                    }
+                }
+            }
+            
+            renderGrid();
+            updateStats();
+        }
+
+        function removeDominoesAt(row, col) {
+            // Remove horizontal dominoes
+            gameState.dominoes.delete(`h-${row}-${col}`);
+            gameState.dominoes.delete(`h-${row}-${col-1}`);
+            
+            // Remove vertical dominoes
+            gameState.dominoes.delete(`v-${row}-${col}`);
+            gameState.dominoes.delete(`v-${row-1}-${col}`);
+        }
+
+        function setDominoType(type) {
+            gameState.dominoType = type;
+            document.querySelectorAll('.domino-preview').forEach(preview => preview.classList.remove('active'));
+            document.getElementById(`preview-${type[0]}`).classList.add('active');
+            updateDominoIndicator();
+        }
+
+        function updateDominoIndicator() {
+            const indicator = document.getElementById('domino-indicator');
+            if (gameState.dominoType === 'horizontal') {
+                indicator.textContent = 'Horizontal (0-2)';
+            } else {
+                indicator.textContent = 'Vertical (1-0)';
+            }
+        }
+
+        function clearGrid() {
+            gameState.blocked = new Set();
+            gameState.dominoes = new Set();
+            renderGrid();
+            updateStats();
+            showMessage('Grid cleared!', 'info');
+        }
+
+        function generatePuzzle() {
+            clearGrid();
+            
+            // Generate random blocked cells (about 10-15% of the grid)
+            const totalCells = gameState.rows * gameState.cols;
+            const blockedCount = Math.floor(totalCells * 0.12);
+            
+            for (let i = 0; i < blockedCount; i++) {
+                let row, col;
+                do {
+                    row = Math.floor(Math.random() * gameState.rows);
+                    col = Math.floor(Math.random() * gameState.cols);
+                } while (gameState.blocked.has(`${row},${col}`));
+                
+                gameState.blocked.add(`${row},${col}`);
+            }
+            
+            // Add some random dominoes to create target sums
+            for (let attempts = 0; attempts < Math.floor(totalCells * 0.3); attempts++) {
+                const row = Math.floor(Math.random() * gameState.rows);
+                const col = Math.floor(Math.random() * gameState.cols);
+                
+                if (Math.random() < 0.6 && col < gameState.cols - 1) {
+                    // Try horizontal domino
+                    const dominoKey = `h-${row}-${col}`;
+                    const cellKey1 = `${row},${col}`;
+                    const cellKey2 = `${row},${col+1}`;
+                    
+                    if (!gameState.blocked.has(cellKey1) && !gameState.blocked.has(cellKey2)) {
+                        removeDominoesAt(row, col);
+                        removeDominoesAt(row, col + 1);
+                        gameState.dominoes.add(dominoKey);
+                    }
+                } else if (row < gameState.rows - 1) {
+                    // Try vertical domino
+                    const dominoKey = `v-${row}-${col}`;
+                    const cellKey1 = `${row},${col}`;
+                    const cellKey2 = `${row+1},${col}`;
+                    
+                    if (!gameState.blocked.has(cellKey1) && !gameState.blocked.has(cellKey2)) {
+                        removeDominoesAt(row, col);
+                        removeDominoesAt(row + 1, col);
+                        gameState.dominoes.add(dominoKey);
+                    }
+                }
+            }
+            
+            // Calculate and set targets based on solution
+            for (let r = 0; r < gameState.rows; r++) {
+                let sum = 0;
+                for (let c = 0; c < gameState.cols; c++) {
+                    if (gameState.dominoes.has(`h-${r}-${c}`)) {
+                        sum += 2; // Horizontal domino contributes 2 total (0+2)
+                    } else if (gameState.dominoes.has(`v-${r}-${c}`) || gameState.dominoes.has(`v-${r-1}-${c}`)) {
+                        sum += 1; // Vertical domino contributes 1 total (1+0)
+                    }
+                    // Blocked cells contribute 0
+                }
+                gameState.rowTargets[r] = sum.toString();
+            }
+            
+            for (let c = 0; c < gameState.cols; c++) {
+                let sum = 0;
+                for (let r = 0; r < gameState.rows; r++) {
+                    if (gameState.dominoes.has(`h-${r}-${c-1}`)) {
+                        sum += 2; // Horizontal domino contributes 2 total
+                    } else if (gameState.dominoes.has(`v-${r}-${c}`) || gameState.dominoes.has(`v-${r-1}-${c}`)) {
+                        sum += 1; // Vertical domino contributes 1 total
+                    }
+                    // Blocked cells contribute 0
+                }
+                gameState.colTargets[c] = sum.toString();
+            }
+            
+            // Clear the solution but keep targets and blocked cells
+            gameState.dominoes = new Set();
+            
+            renderGrid();
+            updateStats();
+            showMessage('New puzzle generated! Blocked cells are given. Try to place dominoes to match the targets.', 'info');
+        }
+
+        function checkSolution() {
+            let valid = true;
+            const errors = [];
+            
+            // Check row sums
+            for (let r = 0; r < gameState.rows; r++) {
+                if (gameState.rowTargets[r] === '') continue;
+                
+                let sum = 0;
+                for (let c = 0; c < gameState.cols; c++) {
+                    if (gameState.dominoes.has(`h-${r}-${c}`)) {
+                        sum += 2; // Horizontal domino = 2 points total
+                    } else if (gameState.dominoes.has(`v-${r}-${c}`) || gameState.dominoes.has(`v-${r-1}-${c}`)) {
+                        sum += 1; // Vertical domino = 1 point total
+                    }
+                }
+                
+                const target = parseInt(gameState.rowTargets[r]);
+                if (sum !== target) {
+                    valid = false;
+                    errors.push(`Row ${r + 1}: got ${sum}, expected ${target}`);
+                }
+            }
+            
+            // Check column sums
+            for (let c = 0; c < gameState.cols; c++) {
+                if (gameState.colTargets[c] === '') continue;
+                
+                let sum = 0;
+                for (let r = 0; r < gameState.rows; r++) {
+                    if (gameState.dominoes.has(`h-${r}-${c-1}`)) {
+                        sum += 2; // Horizontal domino = 2 points total
+                    } else if (gameState.dominoes.has(`v-${r}-${c}`) || gameState.dominoes.has(`v-${r-1}-${c}`)) {
+                        sum += 1; // Vertical domino = 1 point total
+                    }
+                }
+                
+                const target = parseInt(gameState.colTargets[c]);
+                if (sum !== target) {
+                    valid = false;
+                    errors.push(`Col ${c + 1}: got ${sum}, expected ${target}`);
+                }
+            }
+            
+            if (valid) {
+                showMessage('🎉 Perfect! Solution is correct!', 'success');
+            } else {
+                showMessage(`❌ Solution incorrect: ${errors[0]}`, 'error');
+            }
+            
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('dominoes-count').textContent = gameState.dominoes.size;
+            document.getElementById('blocked-count').textContent = gameState.blocked.size;
+            
+            // Count valid rows/cols
+            let validRows = 0;
+            let validCols = 0;
+            
+            for (let r = 0; r < gameState.rows; r++) {
+                if (gameState.rowTargets[r] === '') continue;
+                let sum = 0;
+                for (let c = 0; c < gameState.cols; c++) {
+                    if (gameState.dominoes.has(`h-${r}-${c}`)) sum += 4;
+                    else if (gameState.dominoes.has(`v-${r}-${c}`) || gameState.dominoes.has(`v-${r-1}-${c}`)) sum += 1;
+                }
+                if (sum === parseInt(gameState.rowTargets[r])) validRows++;
+            }
+            
+            for (let c = 0; c < gameState.cols; c++) {
+                if (gameState.colTargets[c] === '') continue;
+                let sum = 0;
+                for (let r = 0; r < gameState.rows; r++) {
+                    if (gameState.dominoes.has(`h-${r}-${c-1}`)) sum += 4;
+                    else if (gameState.dominoes.has(`v-${r}-${c}`) || gameState.dominoes.has(`v-${r-1}-${c}`)) sum += 1;
+                }
+                if (sum === parseInt(gameState.colTargets[c])) validCols++;
+            }
+            
+            const totalRowsWithTargets = gameState.rowTargets.filter(t => t !== '').length;
+            const totalColsWithTargets = gameState.colTargets.filter(t => t !== '').length;
+            
+            document.getElementById('valid-rows').textContent = `${validRows}/${totalRowsWithTargets}`;
+            document.getElementById('valid-cols').textContent = `${validCols}/${totalColsWithTargets}`;
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('status-message');
+            messageDiv.textContent = text;
+            messageDiv.className = `status-message status-${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Initialize the game when page loads
+        document.addEventListener('DOMContentLoaded', initializeGame);
+    </script>
+</body>
+</html>
