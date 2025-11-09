@@ -13,12 +13,75 @@ authors = [
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.8"
-dependencies = [
-  "primp",
-  "protobuf",
-  "selectolax",
-  "flask",
-  "flask_cors",
-  "svgwrite",
-  "ortools"
+license = { text = "MIT" }
+keywords = ["domino", "puzzle", "solver", "constraint-programming", "ortools"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "Topic :: Games/Entertainment :: Puzzle Games",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
+
+dependencies = [
+    "flask>=2.0.0",
+    "ortools>=9.0.0",
+    "svgwrite>=1.4.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=22.0.0",
+    "flake8>=5.0.0",
+    "mypy>=1.0.0",
+]
+ai = [
+    "ollama>=0.1.0",
+    "pillow>=10.0.0",
+]
+cv = [
+    "opencv-python>=4.8.0",
+    "pytesseract>=0.3.10",
+]
+
+[project.urls]
+Homepage = "https://github.com/nicochristie/dominoFitSolver"
+Repository = "https://github.com/nicochristie/dominoFitSolver"
+Documentation = "https://github.com/nicochristie/dominoFitSolver/blob/main/README.md"
+Issues = "https://github.com/nicochristie/dominoFitSolver/issues"
+
+[project.scripts]
+dominofit-solver = "app:main"
+
+[tool.setuptools]
+packages = ["models", "utils"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"*" = ["templates/**/*", "static/**/*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py310", "py311"]
+include = '\.pyi?$'
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "--cov=. --cov-report=html --cov-report=term-missing"

@@ -58,8 +58,9 @@ coverage.xml
 .mypy_cache/
 .dmypy.json
 
-# VS Code
-.vscode/
+# VS Code (keep shared config, ignore personal settings)
+.vscode/*.code-workspace
+.vscode/extensions.json
 
 # Environments
 env/
